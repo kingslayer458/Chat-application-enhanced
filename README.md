@@ -95,7 +95,7 @@ ChatWave is a modern, feature-rich real-time messaging application built with Ne
 
 ## Project Structure
 
-\`\`\`
+```
 chatwave/
 ├── app/                  # Next.js app directory
 │   ├── api/              # API routes
@@ -112,7 +112,7 @@ chatwave/
 ├── hooks/                # Custom React hooks
 ├── server.js             # Socket.IO server
 └── public/               # Static assets
-\`\`\`
+```
 
 ## Technologies Used
 
