@@ -31,10 +31,10 @@ ChatWave is a modern, feature-rich real-time messaging application built with Ne
 ### Setup
 
 1. Clone the repository:
-   \`\`\`bash
+   ```bash
    git clone https://github.com/kingslayer458/Chat-application-enhanced.git
 
-   \`\`\`
+   ```
 
 2. Install dependencies:
    \`\`\`bash
