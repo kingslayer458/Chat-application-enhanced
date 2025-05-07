@@ -31,25 +31,25 @@ ChatWave is a modern, feature-rich real-time messaging application built with Ne
 ### Setup
 
 1. Clone the repository:
-   ```bash
+   ```
    git clone https://github.com/kingslayer458/Chat-application-enhanced.git
 
    ```
 
 2. Install dependencies:
-   \`\`\`bash
+   ```
    npm install or npm install --force
    # or
    yarn install
-   \`\`\`
+   ```
 
 
 3. Start the development server:
-   \`\`\`bash
+   ```
    node server.js
    npm run dev
 
-   \`\`\`
+   ```
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
