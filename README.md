@@ -2,8 +2,9 @@
 
 ChatWave is a modern, feature-rich real-time messaging application built with Next.js and Socket.IO. It provides a seamless chat experience with multiple rooms, user presence indicators, and interactive features.
 
-![ChatWave Screenshot](https://placeholder.svg?height=400&width=800&query=ChatWave+messaging+app+screenshot)
-
+![ChatWave Screenshot](chat1.png)
+![ChatWave Screenshot](chat2.png)
+![ChatWave Screenshot](chat3.png)
 ## Features
 
 - **Real-time messaging** with instant delivery
