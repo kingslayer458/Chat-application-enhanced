@@ -5,6 +5,7 @@ ChatWave is a modern, feature-rich real-time messaging application built with Ne
 ![ChatWave Screenshot](chat1.png)
 ![ChatWave Screenshot](chat2.png)
 ![ChatWave Screenshot](chat3.png)
+![ChatWave Screenshot](chat4.png)
 ## Features
 
 - **Real-time messaging** with instant delivery
