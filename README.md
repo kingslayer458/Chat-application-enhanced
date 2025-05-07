@@ -30,7 +30,7 @@ ChatWave is a modern, feature-rich real-time messaging application built with Ne
 
 1. Clone the repository:
    \`\`\`bash
-   git clone https://github.com/yourusername/chatwave.git
+   git clone https://github.com/kingslayer458/Chat-application-enhanced.git
    cd chatwave
    \`\`\`
 
@@ -130,11 +130,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgements
-
-- Icons by [Lucide](https://lucide.dev/)
-- UI components inspired by [shadcn/ui](https://ui.shadcn.com/)
