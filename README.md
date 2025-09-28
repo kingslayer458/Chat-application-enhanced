@@ -71,7 +71,7 @@ ChatWave is a modern, feature-rich real-time messaging application built with Ne
 
 #### Message Interactions
 
-- **Reactions**: Hover over a message and click the emoji icon to add a reaction.
+- **Reactions: Hover over a message and click the emoji icon to add a reaction.
 - **Full Emoji Picker**: 
   - Double-click on a message to open the full emoji picker
   - Right-click on the emoji button to open the full emoji picker
