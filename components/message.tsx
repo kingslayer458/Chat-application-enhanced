@@ -211,14 +211,14 @@ export function Message({ message, isOwnMessage, onReaction, onEdit, isGrouped =
           </div>
         )}
         <div
-          className={`rounded-2xl shadow-sm ${
+          className={`rounded-2xl shadow-sm w-fit ${
             isOwnMessage
-              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white ml-auto"
               : "bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-gray-100"
-          } ${message.type === "image" ? "p-1 overflow-hidden" : "py-2 px-3"}`}
+          } ${message.type === "image" ? "p-1 overflow-hidden" : "py-1.5 px-3"}`}
         >
           {message.type === "text" && !isEditing && (
-            <div className="whitespace-pre-wrap break-words">{message.content}</div>
+            <div className="whitespace-pre-wrap break-words">{message.content.trim()}</div>
           )}
 
           {message.type === "text" && isEditing && (

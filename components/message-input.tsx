@@ -106,10 +106,11 @@ export function MessageInput({ onSendMessage, onTyping, onEditLastMessage }: Mes
       // Handle text message
       if (message.trim()) {
         // Check if it's just an emoji
+        const trimmedMessage = message.trim()
         const emojiRegex = /^\p{Emoji}+$/u
-        const messageType = emojiRegex.test(message.trim()) ? "emoji" : "text"
+        const messageType = emojiRegex.test(trimmedMessage) ? "emoji" : "text"
 
-        onSendMessage(message, messageType)
+        onSendMessage(trimmedMessage, messageType)
         setMessage("")
 
         // Reset typing indicator
