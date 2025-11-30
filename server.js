@@ -55,6 +55,10 @@ const customRooms = []
 // Invites storage
 const invites = new Map()
 
+// Track pending disconnects for grace period
+const pendingDisconnects = new Map()
+const DISCONNECT_GRACE_PERIOD = 3000 // 3 seconds grace period for refresh
+
 // Track connected users
 const connectedUsers = new Map()
 // Track username to socket mapping for duplicate detection
@@ -82,6 +86,7 @@ function updateUserList(room) {
         avatar: user.avatar,
       }))
 
+    console.log(`Emitting users list for room ${room}:`, roomUsers.map(u => u.username))
     io.in(room).emit("users", roomUsers)
     return roomUsers
   } catch (error) {
@@ -93,6 +98,13 @@ function updateUserList(room) {
 // Helper function to handle user joining a room
 function handleUserJoin(socket, username, status, room, avatar, notifyOthers = true) {
   try {
+    // Cancel any pending disconnect for this user (handles page refresh)
+    if (pendingDisconnects.has(username)) {
+      console.log(`Cancelling pending disconnect for ${username} (reconnected)`)
+      clearTimeout(pendingDisconnects.get(username))
+      pendingDisconnects.delete(username)
+    }
+
     // Check if user with this username already exists
     const existingSocketId = usernameToSocketId.get(username)
     if (existingSocketId && existingSocketId !== socket.id) {
@@ -145,6 +157,9 @@ io.on("connection", (socket) => {
 
       // Use helper function to handle joining
       const roomUsers = handleUserJoin(socket, username, status, room, avatar)
+
+      // Also send users list directly to the joining socket (in case they haven't fully joined the room yet)
+      socket.emit("users", roomUsers)
 
       // Send message history for this room
       const roomMessages = messageHistory.filter((msg) => msg.room === room)
@@ -407,23 +422,45 @@ io.on("connection", (socket) => {
       const userData = connectedUsers.get(socket.id)
       if (userData) {
         const { username, room } = userData
-        console.log(`${username} disconnected from room ${room}`)
 
-        // Remove username to socket mapping
-        if (usernameToSocketId.get(username) === socket.id) {
-          usernameToSocketId.delete(username)
+        // Use grace period before removing user (allows for page refresh)
+        console.log(`${username} disconnected from room ${room}, starting grace period...`)
+
+        // Clear any existing pending disconnect for this user
+        if (pendingDisconnects.has(username)) {
+          clearTimeout(pendingDisconnects.get(username))
         }
 
-        // Remove user from tracking
-        connectedUsers.delete(socket.id)
+        // Set a timeout to remove the user after grace period
+        const timeoutId = setTimeout(() => {
+          // Check if user reconnected with a different socket
+          const currentSocketId = usernameToSocketId.get(username)
+          if (currentSocketId === socket.id || !currentSocketId) {
+            console.log(`Grace period expired for ${username}, removing from room ${room}`)
 
-        // Notify room
-        if (room) {
-          socket.to(room).emit("user-left", { username, room })
+            // Remove username to socket mapping
+            if (usernameToSocketId.get(username) === socket.id) {
+              usernameToSocketId.delete(username)
+            }
 
-          // Update user list
-          updateUserList(room)
-        }
+            // Remove user from tracking
+            connectedUsers.delete(socket.id)
+
+            // Notify room
+            if (room) {
+              io.to(room).emit("user-left", { username, room })
+
+              // Update user list
+              updateUserList(room)
+            }
+          } else {
+            console.log(`${username} reconnected with new socket, skipping removal`)
+          }
+
+          pendingDisconnects.delete(username)
+        }, DISCONNECT_GRACE_PERIOD)
+
+        pendingDisconnects.set(username, timeoutId)
       }
     } catch (error) {
       console.error("Error handling disconnect event:", error)

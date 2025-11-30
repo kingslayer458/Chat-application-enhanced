@@ -12,7 +12,7 @@ export default function JoinPage() {
   const [roomDetails, setRoomDetails] = useState<{ roomId: string; roomName: string; inviter: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [socketPort, setSocketPort] = useState<string>("3000") // Default port
+  const [socketPort, setSocketPort] = useState<string>("3001") // Socket.IO server port
 
   const router = useRouter()
   const params = useParams()
@@ -30,12 +30,12 @@ export default function JoinPage() {
           return data.port
         }
       }
-      // If API fails, try to get from window.location
-      return window.location.port || "3000"
+      // If API fails, use the fixed Socket.IO port
+      return "3001"
     } catch (error) {
       console.error("Error fetching socket port:", error)
-      // Default to same port as the app in case of error
-      return window.location.port || "3000"
+      // Default to Socket.IO server port
+      return "3001"
     }
   }
 
@@ -90,50 +90,7 @@ export default function JoinPage() {
 
         socket.on("connect_error", (err) => {
           console.error("Socket.IO connection error:", err)
-
-          // Try connecting to the same port as the app
-          if (port !== window.location.port) {
-            console.log("Trying to connect to same port as app:", window.location.port)
-            const appPort = window.location.port || "3000"
-            const appBaseUrl = `${protocol}//${hostname}:${appPort}`
-
-            console.log("Connecting to Socket.IO server at:", appBaseUrl)
-
-            const appSocket = io(appBaseUrl, {
-              reconnectionAttempts: 3,
-              timeout: 10000,
-              transports: ["websocket", "polling"],
-            })
-
-            appSocket.on("connect", () => {
-              console.log("Connected to Socket.IO server on app port to check invite")
-              appSocket.emit("check-invite", { inviteId })
-            })
-
-            appSocket.on("invite-details", (details) => {
-              if (details) {
-                setRoomDetails({
-                  roomId: details.roomId,
-                  roomName: details.roomName,
-                  inviter: details.creator,
-                })
-                setLoading(false)
-              } else {
-                setError("Invalid invite link")
-                setLoading(false)
-              }
-              appSocket.disconnect()
-            })
-
-            appSocket.on("connect_error", () => {
-              setError("Could not connect to the chat server")
-              setLoading(false)
-            })
-
-            return
-          }
-
-          setError(`Could not connect to the chat server: ${err.message}`)
+          setError(`Could not connect to the chat server: ${err.message}. Make sure the server is running on port 3001.`)
           setLoading(false)
           socket.disconnect()
         })

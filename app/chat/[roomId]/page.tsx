@@ -28,7 +28,7 @@ export default function ChatPage() {
   const [connectionError, setConnectionError] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string>("")
   const [showSidebar, setShowSidebar] = useState(false)
-  const [socketPort, setSocketPort] = useState<string>("3000") // Default port
+  const [socketPort, setSocketPort] = useState<string>("3001") // Socket.IO server port
   const [rooms, setRooms] = useState<Room[]>([
     {
       id: "general",
@@ -94,12 +94,12 @@ export default function ChatPage() {
           return data.port
         }
       }
-      // If API fails, try to get from window.location
-      return window.location.port || "3000"
+      // If API fails, use fixed Socket.IO port
+      return "3001"
     } catch (error) {
       console.error("Error fetching socket port:", error)
-      // Default to same port as the app in case of error
-      return window.location.port || "3000"
+      // Default to Socket.IO server port
+      return "3001"
     }
   }
 
@@ -128,7 +128,7 @@ export default function ChatPage() {
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
         timeout: 20000,
-        transports: ["polling"], // Force polling only
+        transports: ["websocket", "polling"], // Try websocket first, fallback to polling
         autoConnect: true,
       })
 
@@ -142,14 +142,17 @@ export default function ChatPage() {
         setErrorMessage("")
         reconnectAttempts.current = 0
 
+        // Get username from localStorage since state might not be updated yet
+        const storedUsername = localStorage.getItem("chat-username")
+        
         // Join the room once connected
-        if (username) {
-          console.log("Joining room:", roomId, "as", username)
+        if (storedUsername) {
+          console.log("Joining room:", roomId, "as", storedUsername)
           newSocket.emit("join", {
-            username,
+            username: storedUsername,
             status,
             room: roomId,
-            avatar: username.charAt(0).toUpperCase(),
+            avatar: storedUsername.charAt(0).toUpperCase(),
           })
         }
       })
@@ -159,17 +162,9 @@ export default function ChatPage() {
         reconnectAttempts.current += 1
 
         if (reconnectAttempts.current >= maxReconnectAttempts) {
-          // If we can't connect to a different port, try the same port as the app
-          if (port !== window.location.port && reconnectAttempts.current === maxReconnectAttempts) {
-            console.log("Trying to connect to same port as app:", window.location.port)
-            setSocketPort(window.location.port)
-            connectToServer() // Try again with the same port
-            return
-          }
-
           setConnectionError(true)
           setConnecting(false)
-          setErrorMessage(`Connection error: ${err.message}. Make sure the Socket.IO server is running.`)
+          setErrorMessage(`Connection error: ${err.message}. Make sure the Socket.IO server is running on port 3001.`)
         }
       })
 
@@ -204,6 +199,12 @@ export default function ChatPage() {
             return [...prev, ...newRooms]
           })
         }
+      })
+
+      // Listen for users list updates - must be set up before join event
+      newSocket.on("users", (updatedUsers: User[]) => {
+        console.log("Received users update:", updatedUsers.length, "users", updatedUsers)
+        setUsers(updatedUsers)
       })
 
       setSocket(newSocket)
@@ -329,19 +330,8 @@ export default function ChatPage() {
   useEffect(() => {
     if (!socket || !username || !roomId) return
 
-    // Join the room when socket is connected and room changes
-    if (socket.connected) {
-      socket.emit("join", {
-        username,
-        status,
-        room: roomId,
-        avatar: username.charAt(0).toUpperCase(),
-      })
-    }
-
-    socket.on("users", (updatedUsers: User[]) => {
-      setUsers(updatedUsers)
-    })
+    // Note: Initial join is handled in the connect handler
+    // This effect is for setting up other event listeners
 
     socket.on("message", (message: Message) => {
       setMessages((prev) => [...prev, message])
@@ -532,6 +522,7 @@ export default function ChatPage() {
       socket.emit("leave-room", { username, room: roomId })
 
       // Remove all listeners
+      socket.off("users")
       socket.off("users")
       socket.off("message")
       socket.off("typing")

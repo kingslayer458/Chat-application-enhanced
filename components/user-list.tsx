@@ -9,6 +9,9 @@ interface UserListProps {
 }
 
 export function UserList({ users, currentUser }: UserListProps) {
+  // Debug log
+  console.log("UserList render - users:", users, "currentUser:", currentUser)
+  
   // Sort users: current user first, then online users, then away, then offline
   const sortedUsers = [...users].sort((a, b) => {
     if (a.username === currentUser) return -1
