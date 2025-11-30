@@ -546,7 +546,7 @@ export default function ChatPage() {
   }
 
   // Update the sendMessage function to handle all message types
-  const sendMessage = (content: string, type: MessageType, fileSize?: number, duration?: number) => {
+  const sendMessage = (content: string, type: MessageType, fileSize?: number, duration?: number, fileName?: string) => {
     if (socket && content.trim() && username) {
       try {
         const message: Omit<Message, "id"> = {
@@ -558,6 +558,7 @@ export default function ChatPage() {
           type,
           fileSize,
           duration,
+          fileName,
         }
         socket.emit("message", message)
       } catch (error) {

@@ -8,6 +8,7 @@ export type Message = {
   type: MessageType
   fileSize?: number
   duration?: number
+  fileName?: string
   readBy?: { username: string; timestamp: string }[]
   deleted?: boolean
   edited?: {

@@ -266,28 +266,25 @@ export function Message({ message, isOwnMessage, onReaction, onEdit, isGrouped =
           )}
 
           {message.type === "file" && (
-            <div className="flex items-center space-x-2 p-1">
-              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-500 dark:text-blue-400">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fillRule="evenodd"
-                    d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z"
-                    clipRule="evenodd"
-                  />
+            <div className="flex items-center space-x-3 p-2">
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-500 dark:text-blue-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <a
                   href={message.content}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`font-medium ${isOwnMessage ? "text-white" : "text-blue-500 dark:text-blue-400"} hover:underline`}
+                  download={message.fileName || "file"}
+                  className={`font-medium truncate block ${isOwnMessage ? "text-white hover:text-blue-100" : "text-blue-500 dark:text-blue-400 hover:underline"}`}
                 >
-                  Download file
+                  {message.fileName || "Download file"}
                 </a>
                 {message.fileSize && (
                   <div className={`text-xs ${isOwnMessage ? "text-blue-100" : "text-gray-500 dark:text-gray-400"}`}>
-                    {(message.fileSize / 1024).toFixed(1)} KB
+                    {message.fileSize >= 1024 * 1024 
+                      ? `${(message.fileSize / (1024 * 1024)).toFixed(2)} MB`
+                      : `${(message.fileSize / 1024).toFixed(1)} KB`}
                   </div>
                 )}
               </div>
