@@ -173,10 +173,12 @@ export function MessageInput({ onSendMessage, onTyping, onEditLastMessage }: Mes
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
       
-      // Check file size (limit to 25MB)
-      const maxSize = 25 * 1024 * 1024 // 25MB
+      console.log("File selected:", file.name, "Type:", file.type, "Size:", file.size)
+      
+      // Check file size (limit to 100MB)
+      const maxSize = 100 * 1024 * 1024 // 100MB
       if (file.size > maxSize) {
-        alert("File is too large. Maximum file size is 25MB.")
+        alert("File is too large. Maximum file size is 100MB.")
         return
       }
       
@@ -184,7 +186,12 @@ export function MessageInput({ onSendMessage, onTyping, onEditLastMessage }: Mes
 
       // Create preview (base64)
       const reader = new FileReader()
+      reader.onerror = () => {
+        console.error("Error reading file:", reader.error)
+        alert("Error reading file. Please try again.")
+      }
       reader.onloadend = () => {
+        console.log("File read complete, base64 length:", (reader.result as string)?.length)
         setFilePreview(reader.result as string)
       }
       reader.readAsDataURL(file)

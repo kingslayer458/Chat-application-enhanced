@@ -72,6 +72,7 @@ const io = new Server(server, {
     credentials: true,
   },
   transports: ["websocket", "polling"],
+  maxHttpBufferSize: 100 * 1024 * 1024, // 100MB max payload size for file uploads
 })
 
 // Helper function to update user list for a room
