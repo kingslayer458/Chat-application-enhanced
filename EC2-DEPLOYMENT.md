@@ -161,7 +161,7 @@ server {
 ```
 
 ```bash
-# Test and restart Nginx
+# Test and restart Nginx ok
 sudo nginx -t
 sudo systemctl restart nginx
 sudo systemctl enable nginx
