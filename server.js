@@ -417,6 +417,30 @@ io.on("connection", (socket) => {
     }
   })
 
+  // Clear chat for all users in a room
+  socket.on("clear-chat", ({ room }) => {
+    try {
+      console.log(`Clearing chat for room: ${room}`)
+
+      // Remove all messages for this room from history
+      const messagesToRemove = messageHistory.filter((msg) => msg.room === room)
+      messagesToRemove.forEach((msg) => {
+        const index = messageHistory.indexOf(msg)
+        if (index > -1) {
+          messageHistory.splice(index, 1)
+        }
+      })
+
+      console.log(`Removed ${messagesToRemove.length} messages from room ${room}`)
+
+      // Notify all users in the room that chat was cleared
+      io.in(room).emit("chat-cleared", { room })
+    } catch (error) {
+      console.error("Error clearing chat:", error)
+      socket.emit("error", { message: "Failed to clear chat" })
+    }
+  })
+
   socket.on("disconnect", () => {
     try {
       const userData = connectedUsers.get(socket.id)

@@ -284,6 +284,16 @@ export default function ChatPage() {
     }
   }, [socket, username, roomId, router])
 
+  // Clear chat for all users in the room
+  const clearChat = useCallback(() => {
+    if (socket && roomId) {
+      const confirmed = window.confirm("Are you sure you want to clear the chat for everyone in this room? This action cannot be undone.")
+      if (confirmed) {
+        socket.emit("clear-chat", { room: roomId })
+      }
+    }
+  }, [socket, roomId])
+
   useEffect(() => {
     const handleLeaveRoomEvent = () => {
       console.log("Leave room event received")
@@ -513,6 +523,14 @@ export default function ChatPage() {
       },
     )
 
+    // Handle chat cleared event
+    socket.on("chat-cleared", ({ room }: { room: string }) => {
+      if (room === roomId) {
+        setMessages([])
+        setAllMessages((prev) => prev.filter((msg) => msg.room !== roomId))
+      }
+    })
+
     // Clear messages when changing rooms
     setMessages([])
     setTypingUsers([])
@@ -534,6 +552,7 @@ export default function ChatPage() {
       socket.off("user-left")
       socket.off("message-edited")
       socket.off("invite-created")
+      socket.off("chat-cleared")
       socket.off("duplicate-login")
       socket.off("rooms")
       socket.off("error")
@@ -886,7 +905,7 @@ export default function ChatPage() {
                   <UserList users={users} currentUser={username} />
                 </div>
                 <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
                     <button
                       onClick={() => {
                         generateInviteLink()
@@ -896,6 +915,15 @@ export default function ChatPage() {
                       disabled={isGeneratingInvite}
                     >
                       {isGeneratingInvite ? "Generating..." : "Invite Others"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        clearChat()
+                        setShowSidebar(false)
+                      }}
+                      className="px-3 py-1 text-sm text-red-500 dark:text-red-400 border border-red-500 dark:border-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                    >
+                      Clear Chat
                     </button>
                     <button
                       onClick={leaveRoom}
@@ -920,13 +948,19 @@ export default function ChatPage() {
             </div>
             <UserList users={users} currentUser={username} />
             <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-wrap items-center gap-2 mb-4">
                 <button
                   onClick={generateInviteLink}
                   className="px-3 py-1 text-sm text-rose-500 dark:text-rose-400 border border-rose-500 dark:border-rose-400 rounded-md hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-colors"
                   disabled={isGeneratingInvite}
                 >
                   {isGeneratingInvite ? "Generating..." : "Invite Others"}
+                </button>
+                <button
+                  onClick={clearChat}
+                  className="px-3 py-1 text-sm text-red-500 dark:text-red-400 border border-red-500 dark:border-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                >
+                  Clear Chat
                 </button>
                 <button
                   onClick={leaveRoom}

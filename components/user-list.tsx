@@ -41,11 +41,19 @@ export function UserList({ users, currentUser }: UserListProps) {
       <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
         {users.length} {users.length === 1 ? "user" : "users"} online
       </h3>
-      <motion.ul variants={container} initial="hidden" animate="show" className="space-y-2">
-        {sortedUsers.map((user, index) => (
+      <motion.ul 
+        variants={container} 
+        initial="show" 
+        animate="show" 
+        key={users.map(u => u.username).join(',')}
+        className="space-y-2"
+      >
+        {sortedUsers.map((user) => (
           <motion.li
-            key={`${user.username}-${index}`}
+            key={user.username}
             variants={item}
+            initial={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
           >
             <div className="relative">
