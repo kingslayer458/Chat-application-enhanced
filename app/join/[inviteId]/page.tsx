@@ -49,18 +49,19 @@ export default function JoinPage() {
     // Connect to the Socket.IO server to get invite details
     const connectToServer = async () => {
       try {
-        // Get the Socket.IO port
-        const port = await fetchSocketPort()
-        setSocketPort(port)
+        // Detect if we're behind Nginx (no port in URL means port 80/443)
+        const isBehindNginx = typeof window !== 'undefined' && 
+          (window.location.port === '' || window.location.port === '80' || window.location.port === '443')
+        
+        // When behind Nginx, use same origin. Otherwise use port 3001
+        const baseUrl = isBehindNginx 
+          ? window.location.origin 
+          : `${window.location.protocol}//${window.location.hostname}:3001`
 
-        // Get the Socket.IO server URL
-        const protocol = window.location.protocol
-        const hostname = window.location.hostname
-        const baseUrl = `${protocol}//${hostname}:${port}`
-
-        console.log("Connecting to Socket.IO server at:", baseUrl)
+        console.log("Connecting to Socket.IO server at:", baseUrl, "(Behind Nginx:", isBehindNginx, ")")
 
         const socket = io(baseUrl, {
+          path: "/socket.io/",
           reconnectionAttempts: 3,
           timeout: 10000,
           transports: ["websocket", "polling"],

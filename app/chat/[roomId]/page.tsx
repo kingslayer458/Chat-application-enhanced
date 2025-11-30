@@ -111,10 +111,14 @@ export default function ChatPage() {
     try {
       console.log("Attempting to connect to Socket.IO server")
 
-      // Try multiple connection options
-      const port = "3001" // Use fixed port
-      const protocol = window.location.protocol
-      const hostname = window.location.hostname
+      // Detect if we're behind Nginx (no port in URL means port 80/443)
+      const isBehindNginx = typeof window !== 'undefined' && 
+        (window.location.port === '' || window.location.port === '80' || window.location.port === '443')
+      
+      // When behind Nginx, use same origin. Otherwise use port 3001
+      const socketUrl = isBehindNginx 
+        ? window.location.origin 
+        : `${window.location.protocol}//${window.location.hostname}:3001`
 
       // Close existing socket if it exists
       if (socketRef.current) {
@@ -122,9 +126,10 @@ export default function ChatPage() {
         socketRef.current.disconnect()
       }
 
-      console.log(`Connecting to Socket.IO server at ${protocol}//${hostname}:${port}`)
+      console.log(`Connecting to Socket.IO server at ${socketUrl} (Behind Nginx: ${isBehindNginx})`)
 
-      const newSocket = io(`${protocol}//${hostname}:${port}`, {
+      const newSocket = io(socketUrl, {
+        path: "/socket.io/",
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
         timeout: 20000,
