@@ -556,7 +556,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal server error" })
 })
 
-// Start the server
+// Start the server e
 server.listen(PORT, () => {
   console.log(`Socket.IO server running on http://localhost:${PORT}`)
 })
