@@ -53,11 +53,16 @@ export default function JoinPage() {
         let socketUrl: string
         
         if (typeof window !== 'undefined') {
-          // For HTTPS (production with Cloudflare): use port 8443
-          // For HTTP (local dev): use port 3001
-          const isSecure = window.location.protocol === 'https:'
-          const socketPort = isSecure ? '8443' : '3001'
-          socketUrl = `${window.location.protocol}//${window.location.hostname}:${socketPort}`
+          const hostname = window.location.hostname
+          
+          // For localhost: use localhost:3001
+          // For production: use same origin with port 8443 via Cloudflare
+          if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            socketUrl = `http://${hostname}:3001`
+          } else {
+            // Production: use HTTPS through Cloudflare on port 8443
+            socketUrl = `https://${hostname}:8443`
+          }
         } else {
           socketUrl = 'http://localhost:3001'
         }

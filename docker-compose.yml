@@ -6,7 +6,7 @@ services:
     container_name: chatwave-app
     ports:
       - "80:3000"     # Next.js (Cloudflare proxies 443->80)
-      - "8443:3001"   # Socket.IO (Cloudflare proxies 8443 with HTTPS)
+      - "8443:3001"   # Socket.IO (Cloudflare proxies 8443->8443 with HTTPS)
     environment:
       - NODE_ENV=production
       - PORT=3000
