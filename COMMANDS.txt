@@ -1,0 +1,137 @@
+=====================================================
+CHATWAVE DEPLOYMENT COMMANDS - kingcloud.live
+=====================================================
+
+----- LOCAL DEVELOPMENT -----
+
+# Install dependencies
+pnpm install
+
+# Run development server
+pnpm dev
+
+# Build for production
+pnpm build
+
+
+----- GIT COMMANDS -----
+
+# Check status
+git status
+
+# Add all changes
+git add .
+
+# Commit
+git commit -m "your message"
+
+# Push to branch
+git push origin cloudflare-prod
+
+# Pull latest
+git pull origin cloudflare-prod
+
+
+----- LIGHTSAIL SERVER (SSH) -----
+
+# SSH into server
+ssh -i your-key.pem ubuntu@15.206.116.225
+
+# Navigate to project
+cd ~/Chat-application-enhanced
+
+# Pull latest code
+git pull origin cloudflare-prod
+
+
+----- DOCKER COMMANDS -----
+
+# Build and start containers (detached)
+docker compose up -d --build
+
+# Stop all containers
+docker compose down
+
+# View running containers
+docker compose ps
+
+# View logs (follow mode)
+docker compose logs -f
+
+# View specific container logs
+docker compose logs chatwave
+docker compose logs nginx
+
+# Restart containers
+docker compose restart
+
+# Clean up unused images (frees disk space)
+docker system prune -af
+
+
+----- SSL CERTIFICATE (Let's Encrypt) -----
+
+# Check if certificates exist
+sudo ls -la /etc/letsencrypt/live/kingcloud.live/
+
+# Check certificate expiry
+sudo certbot certificates
+
+# Get new certificate (only if needed, stop docker first)
+docker compose down
+sudo certbot certonly --standalone -d kingcloud.live -d www.kingcloud.live --agree-tos --email YOUR_EMAIL@example.com
+docker compose up -d --build
+
+# Renew certificate manually
+sudo certbot renew
+
+
+----- DEBUGGING -----
+
+# Check if ports are in use
+sudo netstat -tlnp | grep -E '80|443|3000|3001'
+
+# Test if site is responding
+curl -I http://localhost:3000
+curl -I https://kingcloud.live
+
+# Check nginx config syntax
+docker compose exec nginx nginx -t
+
+# Check container resource usage
+docker stats
+
+
+----- FIREWALL (Lightsail) -----
+
+Open these ports in Lightsail Networking:
+- 22 (SSH)
+- 80 (HTTP)
+- 443 (HTTPS)
+
+
+----- DNS (Namecheap → Lightsail) -----
+
+Namecheap Custom DNS Nameservers:
+- ns-654.awsdns-17.net
+- ns-1820.awsdns-35.co.uk
+- ns-149.awsdns-18.com
+- ns-1062.awsdns-04.org
+
+Lightsail DNS A Records:
+- @ → 15.206.116.225
+- www → 15.206.116.225
+
+
+=====================================================
+QUICK DEPLOY CHECKLIST
+=====================================================
+
+1. Push code:       git push origin cloudflare-prod
+2. SSH to server:   ssh -i key.pem ubuntu@15.206.116.225
+3. Pull code:       git pull origin cloudflare-prod
+4. Rebuild:         docker compose up -d --build
+5. Check logs:      docker compose logs -f
+6. Test:            https://kingcloud.live
+
+=====================================================
