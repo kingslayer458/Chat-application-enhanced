@@ -61,7 +61,9 @@ export default function JoinPage() {
             socketUrl = `http://${hostname}:3001`
           } else {
             // Production: use HTTPS through Cloudflare on port 8443
-            socketUrl = `https://${hostname}:8443`
+            // Remove www prefix for consistent socket connection
+            const cleanHostname = hostname.replace(/^www\./, '')
+            socketUrl = `https://${cleanHostname}:8443`
           }
         } else {
           socketUrl = 'http://localhost:3001'
