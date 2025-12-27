@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   chatwave:
     build:
@@ -7,8 +5,8 @@ services:
       dockerfile: Dockerfile
     container_name: chatwave-app
     ports:
-      - "3000:3000"   # Next.js
-      - "3001:3001"   # Socket.IO
+      - "80:3000"     # Next.js (Cloudflare proxies 443->80)
+      - "8443:3001"   # Socket.IO (Cloudflare proxies 8443 with HTTPS)
     environment:
       - NODE_ENV=production
       - PORT=3000

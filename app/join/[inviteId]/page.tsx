@@ -50,15 +50,14 @@ export default function JoinPage() {
     const connectToServer = async () => {
       try {
         // Determine the Socket.IO URL
-        // For production without nginx: use the same hostname but port 3001
         let socketUrl: string
         
         if (typeof window !== 'undefined') {
-          // Always use the current hostname with port 3001 for Socket.IO
-          // This works for both:
-          // - Local dev: localhost:3001
-          // - Production: kingcloud.live:3001
-          socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`
+          // For HTTPS (production with Cloudflare): use port 8443
+          // For HTTP (local dev): use port 3001
+          const isSecure = window.location.protocol === 'https:'
+          const socketPort = isSecure ? '8443' : '3001'
+          socketUrl = `${window.location.protocol}//${window.location.hostname}:${socketPort}`
         } else {
           socketUrl = 'http://localhost:3001'
         }
