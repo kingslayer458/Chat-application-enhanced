@@ -24,7 +24,8 @@ export async function POST(request: Request) {
     })
 
     // Generate the invite link
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+    // In production, use the configured base URL
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.NODE_ENV === "production" ? "http://kingcloud.live:3000" : "http://localhost:3000")
     const inviteLink = `${baseUrl}/join/${inviteId}`
 
     return NextResponse.json({ inviteLink, inviteId })

@@ -111,14 +111,30 @@ export default function ChatPage() {
     try {
       console.log("Attempting to connect to Socket.IO server")
 
-      // Detect if we're behind Nginx (no port in URL means port 80/443)
-      const isBehindNginx = typeof window !== 'undefined' && 
-        (window.location.port === '' || window.location.port === '80' || window.location.port === '443')
+      // Determine the Socket.IO URL
+      // Priority: 1. Environment variable, 2. Same origin (if behind proxy), 3. hostname:3001
+      let socketUrl: string
       
-      // When behind Nginx, use same origin. Otherwise use port 3001
-      const socketUrl = isBehindNginx 
-        ? window.location.origin 
-        : `${window.location.protocol}//${window.location.hostname}:3001`
+      // Check if we have an environment-configured socket URL
+      const envSocketUrl = process.env.NEXT_PUBLIC_SOCKET_URL
+      
+      if (envSocketUrl) {
+        // Use environment variable if set
+        socketUrl = envSocketUrl
+      } else if (typeof window !== 'undefined') {
+        // Check if we're behind a proxy (no port in URL means port 80/443)
+        const isBehindProxy = window.location.port === '' || window.location.port === '80' || window.location.port === '443'
+        
+        if (isBehindProxy) {
+          // Behind proxy - use same origin (proxy should route /socket.io to backend)
+          socketUrl = window.location.origin
+        } else {
+          // Development or direct access - use port 3001
+          socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`
+        }
+      } else {
+        socketUrl = 'http://localhost:3001'
+      }
 
       // Close existing socket if it exists
       if (socketRef.current) {
@@ -126,7 +142,7 @@ export default function ChatPage() {
         socketRef.current.disconnect()
       }
 
-      console.log(`Connecting to Socket.IO server at ${socketUrl} (Behind Nginx: ${isBehindNginx})`)
+      console.log(`Connecting to Socket.IO server at ${socketUrl}`)
 
       const newSocket = io(socketUrl, {
         path: "/socket.io/",

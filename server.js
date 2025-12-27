@@ -556,9 +556,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal server error" })
 })
 
-// Start the server
-server.listen(PORT, () => {
-  console.log(`Socket.IO server running on http://localhost:${PORT}`)
+// Start the server - listen on all interfaces (0.0.0.0) to accept external connections
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Socket.IO server running on port ${PORT}`)
+  console.log(`Accessible at http://0.0.0.0:${PORT} (all network interfaces)`)
 })
 
 // Handle uncaught exceptions

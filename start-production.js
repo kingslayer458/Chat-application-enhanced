@@ -1,28 +1,34 @@
 const { spawn } = require('child_process');
+const path = require('path');
 
-console.log('Starting ChatWave Application...');
+console.log('Starting ChatWave Application for kingcloud.live...');
 
-// Start Socket.IO server
+// Start Socket.IO server (server.js is the Socket.IO server)
 console.log('Starting Socket.IO server on port', process.env.SOCKET_PORT || '3001');
-const socketServer = spawn('node', ['socket-server.js'], {
+const socketServer = spawn('node', ['server.js'], {
   stdio: 'inherit',
   env: { 
     ...process.env, 
+    SOCKET_PORT: process.env.SOCKET_PORT || '3001',
     PORT: process.env.SOCKET_PORT || '3001'
   }
 });
 
 // Wait a bit for Socket.IO to start, then start Next.js
 setTimeout(() => {
-  console.log('Starting Next.js server on port', process.env.PORT || '3000');
-  // The standalone server.js is copied to root by Next.js build
-  const nextServer = spawn('node', ['server.js'], {
+  console.log('Starting Next.js server on port', process.env.NEXT_PORT || '3000');
+  
+  // For standalone build, the server is in .next/standalone/server.js
+  const standalonePath = path.join(__dirname, '.next', 'standalone', 'server.js');
+  
+  const nextServer = spawn('node', [standalonePath], {
     stdio: 'inherit',
     env: {
       ...process.env,
-      PORT: process.env.PORT || '3000',
+      PORT: process.env.NEXT_PORT || '3000',
       HOSTNAME: '0.0.0.0'
-    }
+    },
+    cwd: path.join(__dirname, '.next', 'standalone')
   });
 
   nextServer.on('error', (err) => {

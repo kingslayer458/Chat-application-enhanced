@@ -63,7 +63,7 @@ export function ConnectionError({ onRetry, errorMessage }: ConnectionErrorProps)
         </p>
 
         <ul className="text-left text-sm text-gray-600 dark:text-gray-300 mb-6 space-y-1 list-disc list-inside">
-          <li>The Socket.IO server is not running on port 3000</li>
+          <li>The Socket.IO server is not running on port 3001</li>
           <li>Network connectivity issues</li>
           <li>Firewall or security settings</li>
         </ul>
