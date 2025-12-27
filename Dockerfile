@@ -34,9 +34,11 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-# Copy our custom Socket.IO server and its dependencies
+# Copy our custom Socket.IO server (rename to socket-server.js to avoid conflict with Next.js server.js)
 COPY --from=builder /app/server.js ./socket-server.js
 COPY --from=builder /app/start-production.js ./start-production.js
+
+# Copy all node_modules (needed for Socket.IO server)
 COPY --from=builder /app/node_modules ./node_modules
 
 # Set correct permissions
@@ -46,6 +48,10 @@ USER nextjs
 
 # Expose ports (Next.js and Socket.IO)
 EXPOSE 3000 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:3000/api/health || exit 1
 
 # Start both servers
 CMD ["node", "start-production.js"]
