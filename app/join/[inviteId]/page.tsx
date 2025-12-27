@@ -50,26 +50,15 @@ export default function JoinPage() {
     const connectToServer = async () => {
       try {
         // Determine the Socket.IO URL
-        // Priority: 1. Environment variable, 2. Same origin (if behind proxy), 3. hostname:3001
+        // For production without nginx: use the same hostname but port 3001
         let socketUrl: string
         
-        // Check if we have an environment-configured socket URL
-        const envSocketUrl = process.env.NEXT_PUBLIC_SOCKET_URL
-        
-        if (envSocketUrl) {
-          // Use environment variable if set
-          socketUrl = envSocketUrl
-        } else if (typeof window !== 'undefined') {
-          // Check if we're behind a proxy (no port in URL means port 80/443)
-          const isBehindProxy = window.location.port === '' || window.location.port === '80' || window.location.port === '443'
-          
-          if (isBehindProxy) {
-            // Behind proxy - use same origin (proxy should route /socket.io to backend)
-            socketUrl = window.location.origin
-          } else {
-            // Development or direct access - use port 3001
-            socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`
-          }
+        if (typeof window !== 'undefined') {
+          // Always use the current hostname with port 3001 for Socket.IO
+          // This works for both:
+          // - Local dev: localhost:3001
+          // - Production: kingcloud.live:3001
+          socketUrl = `${window.location.protocol}//${window.location.hostname}:3001`
         } else {
           socketUrl = 'http://localhost:3001'
         }
