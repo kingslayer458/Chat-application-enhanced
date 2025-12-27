@@ -80,6 +80,7 @@ export default function JoinPage() {
         })
 
         socket.on("invite-details", (details) => {
+          console.log("Received invite details:", details)
           if (details) {
             setRoomDetails({
               roomId: details.roomId,
@@ -88,7 +89,7 @@ export default function JoinPage() {
             })
             setLoading(false)
           } else {
-            setError("Invalid invite link")
+            setError("Invalid or expired invite link")
             setLoading(false)
           }
           socket.disconnect()
@@ -110,11 +111,9 @@ export default function JoinPage() {
 
         // Fallback in case the server doesn't respond
         const timeout = setTimeout(() => {
-          if (loading) {
-            setError("Server did not respond in time")
-            setLoading(false)
-            socket.disconnect()
-          }
+          setError("Server did not respond in time. The invite may be invalid or the server is busy.")
+          setLoading(false)
+          socket.disconnect()
         }, 10000)
 
         return () => {
@@ -129,7 +128,7 @@ export default function JoinPage() {
     }
 
     connectToServer()
-  }, [inviteId, loading])
+  }, [inviteId]) // Only depend on inviteId, not loading
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault()

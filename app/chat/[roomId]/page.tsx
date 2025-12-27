@@ -729,16 +729,40 @@ export default function ChatPage() {
     }
   }
 
-  const copyInviteLink = () => {
-    navigator.clipboard
-      .writeText(inviteLink)
-      .then(() => {
+  const copyInviteLink = async () => {
+    try {
+      // Try modern clipboard API first (requires HTTPS on mobile)
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(inviteLink)
         setInviteCopied(true)
         setTimeout(() => setInviteCopied(false), 2000)
-      })
-      .catch((err) => {
-        console.error("Error copying invite link:", err)
-      })
+      } else {
+        // Fallback for HTTP or older browsers
+        const textArea = document.createElement('textarea')
+        textArea.value = inviteLink
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        
+        const successful = document.execCommand('copy')
+        document.body.removeChild(textArea)
+        
+        if (successful) {
+          setInviteCopied(true)
+          setTimeout(() => setInviteCopied(false), 2000)
+        } else {
+          // If copy fails, show the link for manual copy
+          alert(`Please copy this link manually:\n${inviteLink}`)
+        }
+      }
+    } catch (err) {
+      console.error("Error copying invite link:", err)
+      // Fallback: show alert with link for manual copy
+      alert(`Please copy this link manually:\n${inviteLink}`)
+    }
   }
 
   const handleSearch = async (query: string): Promise<SearchResult[]> => {
