@@ -213,6 +213,18 @@ export function MessageInput({ onSendMessage, onTyping, onEditLastMessage }: Mes
 
   const startRecording = async () => {
     try {
+      // Check if we're in a secure context (HTTPS) - required for microphone access
+      if (typeof window !== 'undefined' && !window.isSecureContext) {
+        alert("Voice recording requires HTTPS. Please use a secure connection (https://) to access this feature.")
+        return
+      }
+
+      // Check if mediaDevices is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Voice recording is not supported in this browser.")
+        return
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm;codecs=opus'
@@ -245,9 +257,21 @@ export function MessageInput({ onSendMessage, onTyping, onEditLastMessage }: Mes
       recordingTimerRef.current = setInterval(() => {
         setRecordingTime((prev) => prev + 100)
       }, 100)
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error accessing microphone:", error)
-      alert("Could not access microphone. Please check your browser permissions.")
+      
+      // Provide specific error messages based on the error type
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        alert("Microphone permission denied. Please allow microphone access in your browser settings.")
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        alert("No microphone found. Please connect a microphone and try again.")
+      } else if (error.name === 'NotSupportedError') {
+        alert("Voice recording is not supported in this browser or requires HTTPS.")
+      } else if (!window.isSecureContext) {
+        alert("Voice recording requires HTTPS. Please use a secure connection.")
+      } else {
+        alert("Could not access microphone. Please check your browser permissions and ensure you're using HTTPS.")
+      }
     }
   }
 
