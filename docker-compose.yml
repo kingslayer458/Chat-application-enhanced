@@ -15,17 +15,12 @@ services:
 
   kingplay-api:
     build:
-      context: ./kingplay-backend
+      context: ../kingplay-backend
     container_name: kingplay-api
     expose:
       - "5000"
-    environment:
-      - FRONTEND_URL=https://kingplay.me
-      - JWT_SECRET=dc1f71041b36d1d44b4e4d5f9eb68376
-      - MONGODB_DB_NAME=kingplay
-      - MONGODB_URI=mongodb+srv://manojk82580_db_user:u8fKlgnEYOwbL3OL@cluster0.k0xj2ep.mongodb.net/kingplay
-      - NODE_ENV=production
-      - PORT=5000
+    env_file:
+        - ../kingplay-backend/.env
     restart: unless-stopped
 
   nginx:
