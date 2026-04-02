@@ -50,8 +50,8 @@ USER nextjs
 EXPOSE 3000 3001
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost:3000/api/health || exit 1
+#HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+#  CMD wget -qO- http://localhost:3000/api/health || exit 1
 
 # Start both servers
 CMD ["node", "start-production.js"]
