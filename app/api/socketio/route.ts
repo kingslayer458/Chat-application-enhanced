@@ -10,6 +10,19 @@ const messages: any[] = []
 // Global variable to track the Socket.IO server instance
 let io: SocketIOServer | null = null
 
+const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((origin: string) => origin.trim())
+  .filter(Boolean)
+
+const isOriginAllowed = (origin?: string) => {
+  if (!origin) {
+    return true
+  }
+
+  return allowedOrigins.includes(origin)
+}
+
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
@@ -24,7 +37,13 @@ export async function GET(req: NextRequest, res: any) {
       path: "/api/socketio",
       addTrailingSlash: false,
       cors: {
-        origin: "*",
+        origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+          if (isOriginAllowed(origin)) {
+            return callback(null, true)
+          }
+
+          return callback(new Error("CORS: origin not allowed"))
+        },
         methods: ["GET", "POST"],
         credentials: true,
       },

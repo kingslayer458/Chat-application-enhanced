@@ -9,16 +9,47 @@ const crypto = require("crypto")
 const app = express()
 const server = createServer(app)
 
-// Enable CORS for all routes
+const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
+function isOriginAllowed(origin) {
+  if (!origin) {
+    return true
+  }
+
+  return allowedOrigins.includes(origin)
+}
+
+// Enable CORS for allowed origins
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*")
+  const origin = req.headers.origin
+
+  if (isOriginAllowed(origin)) {
+    if (origin) {
+      res.header("Access-Control-Allow-Origin", origin)
+    }
+    res.header("Vary", "Origin")
+    res.header("Access-Control-Allow-Credentials", "true")
+  }
+
+  res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204)
+  }
+
   next()
 })
 
 // Get port from environment variable or use default
 const PORT = process.env.SOCKET_PORT || process.env.PORT || 3001
 console.log(`Using Socket.IO port: ${PORT}`)
+console.log(
+  `CORS allowed origins: ${allowedOrigins.length > 0 ? allowedOrigins.join(", ") : "(none configured - only non-origin requests allowed)"}`,
+)
 
 // Serve static files from public directory if it exists
 const publicDir = path.join(__dirname, "public")
@@ -67,7 +98,13 @@ const usernameToSocketId = new Map()
 // Initialize Socket.io
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        return callback(null, true)
+      }
+
+      return callback(new Error("CORS: origin not allowed"))
+    },
     methods: ["GET", "POST"],
     credentials: true,
   },

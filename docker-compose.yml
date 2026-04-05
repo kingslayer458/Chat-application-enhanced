@@ -11,6 +11,7 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - SOCKET_PORT=3001
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-https://kingcloud.live,https://www.kingcloud.live}
     restart: unless-stopped
 
   kingplay-api:
