@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { motion } from "framer-motion"
 import { io } from "socket.io-client"
+import { devLog } from "@/lib/dev-log"
 
 export default function JoinPage() {
   const [username, setUsername] = useState("")
@@ -44,7 +45,7 @@ export default function JoinPage() {
           socketUrl = 'http://localhost:3001'
         }
 
-        console.log("Connecting to Socket.IO server at:", socketUrl)
+        devLog("Connecting to Socket.IO server at:", socketUrl)
 
         const socket = io(socketUrl, {
           path: "/socket.io/",
@@ -54,14 +55,14 @@ export default function JoinPage() {
         })
 
         socket.on("connect", () => {
-          console.log("Connected to Socket.IO server to check invite")
+          devLog("Connected to Socket.IO server to check invite")
 
           // Request invite details
           socket.emit("check-invite", { inviteId })
         })
 
         socket.on("invite-details", (details) => {
-          console.log("Received invite details:", details)
+          devLog("Received invite details:", details)
           if (details) {
             setRoomDetails({
               roomId: details.roomId,

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import type { User } from "@/lib/types"
+import { devLog } from "@/lib/dev-log"
 
 interface UserListProps {
   users: User[]
@@ -10,7 +11,7 @@ interface UserListProps {
 
 export function UserList({ users, currentUser }: UserListProps) {
   // Debug log
-  console.log("UserList render - users:", users, "currentUser:", currentUser)
+  devLog("UserList render - users:", users, "currentUser:", currentUser)
   
   // Sort users: current user first, then online users, then away, then offline
   const sortedUsers = [...users].sort((a, b) => {

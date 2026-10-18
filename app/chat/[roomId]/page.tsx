@@ -12,6 +12,7 @@ import { Modal } from "@/components/modal"
 import { Header } from "@/components/header"
 import { ThemeProvider } from "@/contexts/theme-context"
 import type { User, Message, Status, Room, MessageType, SearchResult } from "@/lib/types"
+import { devLog } from "@/lib/dev-log"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { ConnectionError } from "@/components/connection-error"
 
@@ -91,7 +92,7 @@ export default function ChatPage() {
     setErrorMessage("")
 
     try {
-      console.log("Attempting to connect to Socket.IO server")
+      devLog("Attempting to connect to Socket.IO server")
 
       // Determine the Socket.IO URL
       let socketUrl: string
@@ -112,11 +113,11 @@ export default function ChatPage() {
 
       // Close existing socket if it exists
       if (socketRef.current) {
-        console.log("Closing existing socket connection")
+        devLog("Closing existing socket connection")
         socketRef.current.disconnect()
       }
 
-      console.log(`Connecting to Socket.IO server at ${socketUrl}`)
+      devLog(`Connecting to Socket.IO server at ${socketUrl}`)
 
       const newSocket = io(socketUrl, {
         path: "/socket.io/",
@@ -131,7 +132,7 @@ export default function ChatPage() {
 
       // Add connection event handlers
       newSocket.on("connect", () => {
-        console.log("Connected to Socket.IO server with ID:", newSocket.id)
+        devLog("Connected to Socket.IO server with ID:", newSocket.id)
         setConnecting(false)
         setConnectionError(false)
         setErrorMessage("")
@@ -142,7 +143,7 @@ export default function ChatPage() {
         
         // Join the room once connected
         if (storedUsername) {
-          console.log("Joining room:", roomId, "as", storedUsername)
+          devLog("Joining room:", roomId, "as", storedUsername)
           newSocket.emit("join", {
             username: storedUsername,
             status: statusRef.current,
@@ -164,7 +165,7 @@ export default function ChatPage() {
       })
 
       newSocket.on("disconnect", (reason) => {
-        console.log("Disconnected from Socket.IO server:", reason)
+        devLog("Disconnected from Socket.IO server:", reason)
         if (reason === "io server disconnect" || reason === "transport close") {
           setConnectionError(true)
           setErrorMessage(`Disconnected: ${reason}`)
@@ -178,7 +179,7 @@ export default function ChatPage() {
 
       // Handle duplicate login
       newSocket.on("duplicate-login", () => {
-        console.log("Duplicate login detected. This session will be disconnected.")
+        devLog("Duplicate login detected. This session will be disconnected.")
         alert("You have logged in from another device or browser. This session will be disconnected.")
         router.push("/")
       })
@@ -186,7 +187,7 @@ export default function ChatPage() {
       // Listen for custom rooms
       newSocket.on("rooms", (customRooms: Room[]) => {
         if (customRooms && customRooms.length > 0) {
-          console.log("Received custom rooms:", customRooms.length)
+          devLog("Received custom rooms:", customRooms.length)
           setRooms((prev) => {
             // Filter out any custom rooms that might already exist in our state
             const existingRoomIds = prev.map((r) => r.id)
@@ -198,7 +199,7 @@ export default function ChatPage() {
 
       // Listen for users list updates - must be set up before join event
       newSocket.on("users", (updatedUsers: User[]) => {
-        console.log("Received users update:", updatedUsers.length, "users", updatedUsers)
+        devLog("Received users update:", updatedUsers.length, "users", updatedUsers)
         setUsers(updatedUsers)
       })
 
@@ -248,7 +249,7 @@ export default function ChatPage() {
   const leaveRoom = useCallback(() => {
     if (socket) {
       try {
-        console.log("Leaving room:", roomId)
+        devLog("Leaving room:", roomId)
 
         // Emit leave-room event to the server
         socket.emit("leave-room", { username, room: roomId })
@@ -291,7 +292,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     const handleLeaveRoomEvent = () => {
-      console.log("Leave room event received")
+      devLog("Leave room event received")
       leaveRoom()
     }
 
@@ -754,8 +755,8 @@ export default function ChatPage() {
     if (!query.trim()) return []
 
     try {
-      console.log("Searching for:", query)
-      console.log("All messages:", allMessages.length)
+      devLog("Searching for:", query)
+      devLog("All messages:", allMessages.length)
 
       const results = allMessages
         .filter((msg) => {
@@ -779,7 +780,7 @@ export default function ChatPage() {
         })
         .slice(0, 10) // Limit results
 
-      console.log("Search results:", results.length)
+      devLog("Search results:", results.length)
       return results
     } catch (error) {
       console.error("Error searching messages:", error)
@@ -789,7 +790,7 @@ export default function ChatPage() {
 
   const handleSearchResultClick = (result: SearchResult) => {
     try {
-      console.log("Search result clicked:", result)
+      devLog("Search result clicked:", result)
 
       // If the message is in a different room, navigate there
       if (result.roomId !== roomId) {

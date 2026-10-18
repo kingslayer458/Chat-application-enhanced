@@ -2,7 +2,13 @@ const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-console.log('Starting ChatWave Application for kingcloud.live...');
+const devLog = (...args) => {
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(...args);
+  }
+};
+
+devLog('Starting ChatWave Application for kingcloud.live...');
 
 // Detect if running in Docker (standalone files are in /app directly)
 const isDocker = fs.existsSync('/app/server.js') || fs.existsSync('/app/socket-server.js');
@@ -13,12 +19,12 @@ const socketServerFile = fs.existsSync(path.join(baseDir, 'socket-server.js'))
   ? 'socket-server.js' 
   : 'server.js';
 
-console.log(`Running in ${isDocker ? 'Docker' : 'local'} mode`);
-console.log(`Base directory: ${baseDir}`);
-console.log(`Socket server file: ${socketServerFile}`);
+devLog(`Running in ${isDocker ? 'Docker' : 'local'} mode`);
+devLog(`Base directory: ${baseDir}`);
+devLog(`Socket server file: ${socketServerFile}`);
 
 // Start Socket.IO server
-console.log('Starting Socket.IO server on port', process.env.SOCKET_PORT || '3001');
+devLog('Starting Socket.IO server on port', process.env.SOCKET_PORT || '3001');
 const socketServer = spawn('node', [path.join(baseDir, socketServerFile)], {
   stdio: 'inherit',
   env: { 
@@ -30,7 +36,7 @@ const socketServer = spawn('node', [path.join(baseDir, socketServerFile)], {
 
 // Wait a bit for Socket.IO to start, then start Next.js
 setTimeout(() => {
-  console.log('Starting Next.js server on port', process.env.NEXT_PORT || process.env.PORT || '3000');
+  devLog('Starting Next.js server on port', process.env.NEXT_PORT || process.env.PORT || '3000');
   
   // For Docker standalone build, server.js is in /app directly
   // For local standalone build, it's in .next/standalone/server.js
@@ -41,7 +47,7 @@ setTimeout(() => {
     standalonePath = path.join(baseDir, '.next', 'standalone', 'server.js');
   }
   
-  console.log(`Next.js standalone path: ${standalonePath}`);
+  devLog(`Next.js standalone path: ${standalonePath}`);
   
   const nextServer = spawn('node', [standalonePath], {
     stdio: 'inherit',
@@ -58,7 +64,7 @@ setTimeout(() => {
   });
 
   nextServer.on('exit', (code) => {
-    console.log(`Next.js server exited with code ${code}`);
+    devLog(`Next.js server exited with code ${code}`);
     socketServer.kill();
     process.exit(code || 0);
   });
@@ -69,18 +75,18 @@ socketServer.on('error', (err) => {
 });
 
 socketServer.on('exit', (code) => {
-  console.log(`Socket.IO server exited with code ${code}`);
+  devLog(`Socket.IO server exited with code ${code}`);
 });
 
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('Received SIGTERM, shutting down...');
+  devLog('Received SIGTERM, shutting down...');
   socketServer.kill('SIGTERM');
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
-  console.log('Received SIGINT, shutting down...');
+  devLog('Received SIGINT, shutting down...');
   socketServer.kill('SIGINT');
   process.exit(0);
 });

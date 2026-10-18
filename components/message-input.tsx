@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
 import type { MessageType } from "@/lib/types"
+import { devLog } from "@/lib/dev-log"
 
 interface MessageInputProps {
   onSendMessage: (content: string, type: MessageType, fileSize?: number, duration?: number, fileName?: string) => void
@@ -174,7 +175,7 @@ export function MessageInput({ onSendMessage, onTyping, onEditLastMessage }: Mes
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
       
-      console.log("File selected:", file.name, "Type:", file.type, "Size:", file.size)
+      devLog("File selected:", file.name, "Type:", file.type, "Size:", file.size)
       
       // Check file size (limit to 100MB)
       const maxSize = 100 * 1024 * 1024 // 100MB
@@ -192,7 +193,7 @@ export function MessageInput({ onSendMessage, onTyping, onEditLastMessage }: Mes
         alert("Error reading file. Please try again.")
       }
       reader.onloadend = () => {
-        console.log("File read complete, base64 length:", (reader.result as string)?.length)
+        devLog("File read complete, base64 length:", (reader.result as string)?.length)
         setFilePreview(reader.result as string)
       }
       reader.readAsDataURL(file)
