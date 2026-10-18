@@ -392,9 +392,8 @@ io.on("connection", (socket) => {
       if (invite) {
         const { roomId, roomName, roomDescription } = invite
 
-        // Use helper function to handle joining with the notification flag set to false
-        // We'll handle the notification differently for invite joins
-        const roomUsers = handleUserJoin(socket, username, status, roomId, avatar, false)
+        // Handle the invite join without sending a regular user-joined event.
+        handleUserJoin(socket, username, status, roomId, avatar, false)
 
         // Notify room about new user via invite
         io.in(roomId).emit("invite-joined", {
@@ -416,7 +415,7 @@ io.on("connection", (socket) => {
     }
   })
 
-  socket.on("join-room", ({ username, status, room, avatar }) => {
+  socket.on("join-room", ({ username, room }) => {
     try {
       const userData = connectedUsers.get(socket.id)
       if (userData) {
