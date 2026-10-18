@@ -56,8 +56,8 @@ app.use((req, res, next) => {
 
 // Get port from environment variable or use default
 const PORT = process.env.SOCKET_PORT || process.env.PORT || 3001
-devLog(`Using Socket.IO port: ${PORT}`)
-devLog(
+console.log(`Using Socket.IO port: ${PORT}`)
+console.log(
   `CORS allowed origins: ${allowedOrigins.length > 0 ? allowedOrigins.join(", ") : "(none configured - only non-origin requests allowed)"}`,
 )
 
@@ -197,14 +197,14 @@ function handleUserJoin(socket, username, status, room, avatar, notifyOthers = t
 
 // Socket.io connection handler
 io.on("connection", (socket) => {
-  devLog("Client connected:", socket.id)
+  console.log("Client connected:", socket.id)
 
   // Send initial rooms list to all clients
   socket.emit("rooms", [...defaultRooms, ...customRooms])
 
   socket.on("join", ({ username, status, room, avatar }) => {
     try {
-      devLog(`${username} joined room ${room}`)
+      console.log(`${username} joined room ${room}`)
 
       // Use helper function to handle joining
       const roomUsers = handleUserJoin(socket, username, status, room, avatar)
@@ -223,7 +223,7 @@ io.on("connection", (socket) => {
 
   socket.on("message", (messageData) => {
     try {
-      devLog(
+      console.log(
         "Received message:",
         typeof messageData.content === "string" ? messageData.content.substring(0, 50) : "Non-text content",
       )
@@ -445,7 +445,7 @@ io.on("connection", (socket) => {
 
   socket.on("leave-room", ({ username, room }) => {
     try {
-      devLog(`${username} left room ${room}`)
+      console.log(`${username} left room ${room}`)
 
       // Leave the room
       socket.leave(room)
@@ -471,7 +471,7 @@ io.on("connection", (socket) => {
   // Clear chat for all users in a room
   socket.on("clear-chat", ({ room }) => {
     try {
-      devLog(`Clearing chat for room: ${room}`)
+      console.log(`Clearing chat for room: ${room}`)
 
       // Remove all messages for this room from history
       const messagesToRemove = messageHistory.filter((msg) => msg.room === room)
@@ -482,7 +482,7 @@ io.on("connection", (socket) => {
         }
       })
 
-      devLog(`Removed ${messagesToRemove.length} messages from room ${room}`)
+      console.log(`Removed ${messagesToRemove.length} messages from room ${room}`)
 
       // Notify all users in the room that chat was cleared
       io.in(room).emit("chat-cleared", { room })
@@ -499,7 +499,7 @@ io.on("connection", (socket) => {
         const { username, room } = userData
 
         // Use grace period before removing user (allows for page refresh)
-        devLog(`${username} disconnected from room ${room}, starting grace period...`)
+        console.log(`${username} disconnected from room ${room}, starting grace period...`)
 
         // Clear any existing pending disconnect for this user
         if (pendingDisconnects.has(username)) {
@@ -511,7 +511,7 @@ io.on("connection", (socket) => {
           // Check if user reconnected with a different socket
           const currentSocketId = usernameToSocketId.get(username)
           if (currentSocketId === socket.id || !currentSocketId) {
-            devLog(`Grace period expired for ${username}, removing from room ${room}`)
+            console.log(`Grace period expired for ${username}, removing from room ${room}`)
 
             // Remove username to socket mapping
             if (usernameToSocketId.get(username) === socket.id) {
@@ -529,7 +529,7 @@ io.on("connection", (socket) => {
               updateUserList(room)
             }
           } else {
-            devLog(`${username} reconnected with new socket, skipping removal`)
+            console.log(`${username} reconnected with new socket, skipping removal`)
           }
 
           pendingDisconnects.delete(username)
@@ -608,8 +608,8 @@ app.use((err, req, res, next) => {
 
 // Start the server - listen on all interfaces (0.0.0.0) to accept external connections
 server.listen(PORT, "0.0.0.0", () => {
-  devLog(`Socket.IO server running on port ${PORT}`)
-  devLog(`Accessible at http://0.0.0.0:${PORT} (all network interfaces)`)
+  console.log(`Socket.IO server running on port ${PORT}`)
+  console.log(`Accessible at http://0.0.0.0:${PORT} (all network interfaces)`)
 })
 
 // Handle uncaught exceptions
