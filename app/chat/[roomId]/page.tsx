@@ -45,21 +45,6 @@ export default function ChatPage() {
       name: "Gossips",
       description: "Share the latest news and gossip",
     },
-    {
-      id: "random",
-      name: "Random",
-      description: "Random discussions about anything",
-    },
-    {
-      id: "music",
-      name: "Music",
-      description: "Share and discuss your favorite music",
-    },
-    {
-      id: "gaming",
-      name: "Gaming",
-      description: "Gaming discussions and team-ups",
-    },
   ])
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [inviteLink, setInviteLink] = useState("")
