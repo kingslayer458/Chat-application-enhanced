@@ -19,6 +19,10 @@ function isOriginAllowed(origin) {
     return true
   }
 
+  if (process.env.NODE_ENV !== "production" && ["http://localhost:3000", "http://127.0.0.1:3000"].includes(origin)) {
+    return true
+  }
+
   return allowedOrigins.includes(origin)
 }
 
@@ -146,18 +150,21 @@ function handleUserJoin(socket, username, status, room, avatar, notifyOthers = t
     // Check if user with this username already exists
     const existingSocketId = usernameToSocketId.get(username)
     if (existingSocketId && existingSocketId !== socket.id) {
-      // If the username is already connected from another socket, disconnect the old one
-      console.log(`Duplicate login detected for ${username}. Disconnecting old session.`)
-
       const oldSocket = io.sockets.sockets.get(existingSocketId)
-      if (oldSocket) {
-        // Notify the old session that they've been disconnected due to login elsewhere
+      if (oldSocket?.connected) {
+        // A connected socket using the same username is a real duplicate session.
+        console.log(`Duplicate login detected for ${username}. Disconnecting old session.`)
         oldSocket.emit("duplicate-login")
         oldSocket.disconnect(true)
+      } else {
+        // A disconnected socket can remain in the map briefly during a refresh.
+        console.log(`Removing stale socket for ${username}: ${existingSocketId}`)
       }
 
-      // Remove the old user entry
       connectedUsers.delete(existingSocketId)
+      if (usernameToSocketId.get(username) === existingSocketId) {
+        usernameToSocketId.delete(username)
+      }
     }
 
     // Store user info

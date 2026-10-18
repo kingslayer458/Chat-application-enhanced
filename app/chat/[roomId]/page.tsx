@@ -65,6 +65,7 @@ export default function ChatPage() {
   const [inviteCopied, setInviteCopied] = useState(false)
   const [isGeneratingInvite, setIsGeneratingInvite] = useState(false)
   const [inviteError, setInviteError] = useState<string | null>(null)
+  const statusRef = useRef<Status>(status)
   const lastMessageRef = useRef<string | null>(null)
   const visibleMessagesRef = useRef<Set<string>>(new Set())
   const reconnectAttempts = useRef(0)
@@ -79,6 +80,10 @@ export default function ChatPage() {
   useEffect(() => {
     setIsMounted(true)
   }, [])
+
+  useEffect(() => {
+    statusRef.current = status
+  }, [status])
 
   const connectToServer = useCallback(async () => {
     setConnecting(true)
@@ -140,7 +145,7 @@ export default function ChatPage() {
           console.log("Joining room:", roomId, "as", storedUsername)
           newSocket.emit("join", {
             username: storedUsername,
-            status,
+            status: statusRef.current,
             room: roomId,
             avatar: storedUsername.charAt(0).toUpperCase(),
           })
@@ -204,7 +209,7 @@ export default function ChatPage() {
       setConnecting(false)
       setErrorMessage(`Failed to connect: ${error instanceof Error ? error.message : "Unknown error"}`)
     }
-  }, [roomId, status, username, router])
+  }, [roomId, router])
 
   useEffect(() => {
     if (!isMounted) return
