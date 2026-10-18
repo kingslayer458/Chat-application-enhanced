@@ -13,6 +13,7 @@ export default function JoinPage() {
   const [roomDetails, setRoomDetails] = useState<{ roomId: string; roomName: string; inviter: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [retryKey, setRetryKey] = useState(0)
 
   const router = useRouter()
   const params = useParams()
@@ -25,9 +26,21 @@ export default function JoinPage() {
       setUsername(storedUsername)
     }
 
-    // Connect to the Socket.IO server to get invite details
-    const connectToServer = async () => {
-      try {
+    let cancelled = false
+    let timeout: ReturnType<typeof setTimeout> | null = null
+    let socket: ReturnType<typeof io> | null = null
+
+    const finish = (nextError?: string) => {
+      if (cancelled) return
+      if (timeout) clearTimeout(timeout)
+      if (nextError) {
+        setError(nextError)
+      }
+      setLoading(false)
+      socket?.disconnect()
+    }
+
+    try {
         // Determine the Socket.IO URL
         let socketUrl: string
         
@@ -47,7 +60,7 @@ export default function JoinPage() {
 
         devLog("Connecting to Socket.IO server at:", socketUrl)
 
-        const socket = io(socketUrl, {
+        socket = io(socketUrl, {
           path: "/socket.io/",
           reconnectionAttempts: 3,
           timeout: 10000,
@@ -58,7 +71,7 @@ export default function JoinPage() {
           devLog("Connected to Socket.IO server to check invite")
 
           // Request invite details
-          socket.emit("check-invite", { inviteId })
+          socket?.emit("check-invite", { inviteId })
         })
 
         socket.on("invite-details", (details) => {
@@ -69,48 +82,37 @@ export default function JoinPage() {
               roomName: details.roomName,
               inviter: details.creator,
             })
-            setLoading(false)
+            finish()
           } else {
-            setError("Invalid or expired invite link")
-            setLoading(false)
+            finish("Invalid or expired invite link")
           }
-          socket.disconnect()
         })
 
         socket.on("connect_error", (err) => {
           console.error("Socket.IO connection error:", err)
-          setError(`Could not connect to the chat server: ${err.message}. Make sure the server is running.`)
-          setLoading(false)
-          socket.disconnect()
+          finish(`Could not connect to the chat server: ${err.message}. Make sure the server is running.`)
         })
 
         socket.on("error", (err) => {
           console.error("Socket error:", err)
-          setError(`Server error: ${err.message || "Unknown error"}`)
-          setLoading(false)
-          socket.disconnect()
+          finish(`Server error: ${err.message || "Unknown error"}`)
         })
 
         // Fallback in case the server doesn't respond
-        const timeout = setTimeout(() => {
-          setError("Server did not respond in time. The invite may be invalid or the server is busy.")
-          setLoading(false)
-          socket.disconnect()
+        timeout = setTimeout(() => {
+          finish("Server did not respond in time. The invite may be invalid or the server is busy.")
         }, 10000)
-
-        return () => {
-          clearTimeout(timeout)
-          socket.disconnect()
-        }
-      } catch (error) {
-        console.error("Error connecting to server:", error)
-        setError(`Connection error: ${error instanceof Error ? error.message : "Unknown error"}`)
-        setLoading(false)
-      }
+    } catch (error) {
+      console.error("Error connecting to server:", error)
+      finish(`Connection error: ${error instanceof Error ? error.message : "Unknown error"}`)
     }
 
-    connectToServer()
-  }, [inviteId]) // Only depend on inviteId, not loading
+    return () => {
+      cancelled = true
+      if (timeout) clearTimeout(timeout)
+      socket?.disconnect()
+    }
+  }, [inviteId, retryKey])
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault()
@@ -133,6 +135,7 @@ export default function JoinPage() {
   const handleRetry = () => {
     setLoading(true)
     setError(null)
+    setRetryKey((current) => current + 1)
   }
 
   if (loading) {

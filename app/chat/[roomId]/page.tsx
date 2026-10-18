@@ -153,6 +153,14 @@ export default function ChatPage() {
         }
       })
 
+      newSocket.on("history", (history: Message[]) => {
+        setMessages(history)
+        setAllMessages((prev) => {
+          const newMessages = history.filter((msg) => !prev.some((existing) => existing.id === msg.id))
+          return [...prev, ...newMessages]
+        })
+      })
+
       newSocket.on("connect_error", (err) => {
         console.error("Socket.IO connection error:", err)
         reconnectAttempts.current += 1
@@ -418,17 +426,6 @@ export default function ChatPage() {
       },
     )
 
-    socket.on("history", (history: Message[]) => {
-      // Set messages from history
-      setMessages(history)
-
-      // Store all messages for search
-      setAllMessages((prev) => {
-        const newMessages = history.filter((msg) => !prev.some((existing) => existing.id === msg.id))
-        return [...prev, ...newMessages]
-      })
-    })
-
     socket.on("status-change", ({ username, status, room }: { username: string; status: Status; room: string }) => {
       if (room === roomId) {
         setUsers((prev) =>
@@ -451,6 +448,17 @@ export default function ChatPage() {
     socket.on("user-left", ({ username, room }: { username: string; room: string }) => {
       if (room === roomId) {
         // User left notification (removed sound)
+      }
+    })
+
+    socket.on("message-deleted", ({ messageId, room }: { messageId: string; room: string }) => {
+      if (room === roomId) {
+        setMessages((prev) => prev.map((message) => (
+          message.id === messageId ? { ...message, deleted: true } : message
+        )))
+        setAllMessages((prev) => prev.map((message) => (
+          message.id === messageId ? { ...message, deleted: true } : message
+        )))
       }
     })
 
@@ -546,6 +554,7 @@ export default function ChatPage() {
       socket.off("status-change")
       socket.off("user-joined")
       socket.off("user-left")
+      socket.off("message-deleted")
       socket.off("message-edited")
       socket.off("invite-created")
       socket.off("chat-cleared")
@@ -553,7 +562,7 @@ export default function ChatPage() {
       socket.off("rooms")
       socket.off("error")
     }
-  }, [socket, username, roomId, status])
+  }, [socket, username, roomId])
 
   // Don't render anything until after hydration to avoid mismatch
   if (!isMounted) {

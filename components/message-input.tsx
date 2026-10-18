@@ -31,6 +31,8 @@ export function MessageInput({ onSendMessage, onTyping, onEditLastMessage }: Mes
   const fileInputRef = useRef<HTMLInputElement>(null)
   const generalFileInputRef = useRef<HTMLInputElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const maxEncodedPayloadSize = 100 * 1024 * 1024
+  const maxFileSize = Math.floor(maxEncodedPayloadSize * 0.7)
 
   // Clean up audio URL when component unmounts
   useEffect(() => {
@@ -145,6 +147,10 @@ export function MessageInput({ onSendMessage, onTyping, onEditLastMessage }: Mes
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
+      if (file.size > maxFileSize) {
+        alert("Image is too large. Please choose a file smaller than 70 MB.")
+        return
+      }
       setSelectedImage(file)
 
       // Create preview
@@ -177,10 +183,9 @@ export function MessageInput({ onSendMessage, onTyping, onEditLastMessage }: Mes
       
       devLog("File selected:", file.name, "Type:", file.type, "Size:", file.size)
       
-      // Check file size (limit to 100MB)
-      const maxSize = 100 * 1024 * 1024 // 100MB
-      if (file.size > maxSize) {
-        alert("File is too large. Maximum file size is 100MB.")
+      // Base64 encoding increases the payload, so keep the raw file below the server limit.
+      if (file.size > maxFileSize) {
+        alert("File is too large. Please choose a file smaller than 70 MB.")
         return
       }
       
@@ -227,9 +232,14 @@ export function MessageInput({ onSendMessage, onTyping, onEditLastMessage }: Mes
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      })
+      const supportedMimeType = [
+        "audio/webm;codecs=opus",
+        "audio/webm",
+        "audio/mp4",
+      ].find((mimeType) => MediaRecorder.isTypeSupported(mimeType))
+      const mediaRecorder = supportedMimeType
+        ? new MediaRecorder(stream, { mimeType: supportedMimeType })
+        : new MediaRecorder(stream)
       mediaRecorderRef.current = mediaRecorder
       audioChunksRef.current = []
 
@@ -240,7 +250,9 @@ export function MessageInput({ onSendMessage, onTyping, onEditLastMessage }: Mes
       }
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm;codecs=opus' })
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: mediaRecorder.mimeType || "audio/webm",
+        })
         const audioUrl = URL.createObjectURL(audioBlob)
         setAudioBlob(audioBlob)
         setAudioURL(audioUrl)

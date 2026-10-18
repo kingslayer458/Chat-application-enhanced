@@ -281,10 +281,11 @@ io.on("connection", (socket) => {
       const messageIndex = messageHistory.findIndex((msg) => msg.id === messageId)
       if (messageIndex !== -1) {
         const timestamp = new Date().toISOString()
+        const originalContent = messageHistory[messageIndex].content
         messageHistory[messageIndex].content = newContent
         messageHistory[messageIndex].edited = {
           timestamp,
-          original: messageHistory[messageIndex].content
+          original: originalContent,
         }
       }
 

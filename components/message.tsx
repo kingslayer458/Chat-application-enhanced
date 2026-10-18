@@ -188,6 +188,23 @@ export function Message({ message, isOwnMessage, onReaction, onEdit, isGrouped =
     }
   }, [showEmojiPicker])
 
+  if (message.deleted) {
+    return (
+      <motion.div
+        id={`message-${message.id}`}
+        ref={messageRef}
+        className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} mt-2`}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        <div className="rounded-2xl bg-gray-100 dark:bg-gray-800 px-3 py-1.5 text-sm italic text-gray-500 dark:text-gray-400">
+          Message deleted
+        </div>
+      </motion.div>
+    )
+  }
+
   // Check if message was edited
   const wasEdited = message.edited?.timestamp
 
