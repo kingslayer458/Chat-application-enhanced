@@ -28,7 +28,6 @@ export default function ChatPage() {
   const [connectionError, setConnectionError] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string>("")
   const [showSidebar, setShowSidebar] = useState(false)
-  const [socketPort, setSocketPort] = useState<string>("3001") // Socket.IO server port
   const [rooms, setRooms] = useState<Room[]>([
     {
       id: "general",
@@ -80,28 +79,6 @@ export default function ChatPage() {
   useEffect(() => {
     setIsMounted(true)
   }, [])
-
-  // Fetch socket port from API
-  const fetchSocketPort = async () => {
-    try {
-      // Try to get the socket port from the API
-      const response = await fetch("/api/socket-port")
-      if (response.ok) {
-        const data = await response.json()
-        if (data.port) {
-          console.log("Socket port from API:", data.port)
-          setSocketPort(data.port)
-          return data.port
-        }
-      }
-      // If API fails, use fixed Socket.IO port
-      return "3001"
-    } catch (error) {
-      console.error("Error fetching socket port:", error)
-      // Default to Socket.IO server port
-      return "3001"
-    }
-  }
 
   const connectToServer = useCallback(async () => {
     setConnecting(true)
@@ -860,7 +837,7 @@ export default function ChatPage() {
             <div className="text-sm text-gray-500 dark:text-gray-400 mt-4 p-3 bg-gray-100 dark:bg-gray-700/50 rounded-lg">
               <p className="mb-2">If this takes too long, please check:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>The Socket.IO server is running on port {socketPort}</li>
+                <li>The Socket.IO server is running on port 3001</li>
                 <li>Your network connection is stable</li>
                 <li>No firewall is blocking the connection</li>
               </ul>

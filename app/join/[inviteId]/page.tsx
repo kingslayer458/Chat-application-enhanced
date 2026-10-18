@@ -12,32 +12,10 @@ export default function JoinPage() {
   const [roomDetails, setRoomDetails] = useState<{ roomId: string; roomName: string; inviter: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [socketPort, setSocketPort] = useState<string>("3001") // Socket.IO server port
 
   const router = useRouter()
   const params = useParams()
   const inviteId = params.inviteId as string
-
-  // Fetch socket port from API
-  const fetchSocketPort = async () => {
-    try {
-      // Try to get the socket port from the API
-      const response = await fetch("/api/socket-port")
-      if (response.ok) {
-        const data = await response.json()
-        if (data.port) {
-          console.log("Socket port from API:", data.port)
-          return data.port
-        }
-      }
-      // If API fails, use the fixed Socket.IO port
-      return "3001"
-    } catch (error) {
-      console.error("Error fetching socket port:", error)
-      // Default to Socket.IO server port
-      return "3001"
-    }
-  }
 
   useEffect(() => {
     // Check if username is already stored
